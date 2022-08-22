@@ -11,8 +11,6 @@ contract Locking is ReentrancyGuard {
 
     event TimerStarted(uint256 _time, address _beneficiary);
 
-    // event TokenDeposited(address _beneficiary, uint256 _amount);
-
     event TokenWithdrawn(address _beneficiary, uint256 _amount);
 
     event PendingGovernanceUpdated(address pendingGovernance);
@@ -23,22 +21,23 @@ contract Locking is ReentrancyGuard {
 
     address public pendingGovernance;
 
-    // mapping(address => uint256) depositOf;
-    uint256 totalDeposit;
+    uint256 public totalDeposit;
 
-    // mapping(address => uint256) withdrawn;
-    uint256 totalWithdrawn;
+    uint256 public totalWithdrawn;
 
-    IERC20 erc20Token;
+    IERC20  public erc20Token;
 
-    uint256 startingTime;
+    uint256 public startingTime;
 
     address public beneficiary;
 
+    /// @dev Number of periods to wait before unlocking happens.
     uint256 public lockingPeriods;
 
+    /// @dev Number of periods to linearly unlock locked token after locking periods.
     uint256 public withdrawPeriods;
 
+    /// @dev Time for a period in block time unit.
     uint256 public periodLength;
 
     constructor(
@@ -92,6 +91,9 @@ contract Locking is ReentrancyGuard {
         emit PendingGovernanceUpdated(_pendingGovernance);
     }
 
+    /// @dev Accepts to be the governance
+    ///
+    /// The function can only be called by the current pending governance
     function acceptGovernance() external {
         require(
             msg.sender == pendingGovernance,
@@ -103,6 +105,13 @@ contract Locking is ReentrancyGuard {
         emit GovernanceUpdated(pendingGovernance);
     }
 
+    /// @dev Starts the timer
+    ///
+    /// The function can only be called by the current governance.
+    /// The function can only be called once.
+    ///
+    /// @param _time time in the future when the timer starts.
+    /// @param _beneficiary the address that is allowed to claim the unlocked amount.
     function startTimer(uint256 _time, address _beneficiary) external onlyGovernance {
         require(startingTime == 0, "Locking: timer already started");
         require(
@@ -118,6 +127,11 @@ contract Locking is ReentrancyGuard {
         emit TimerStarted(_time, _beneficiary);
     }
 
+    /// @dev Withdraws unlocked amount
+    ///
+    /// The funtion can only be called by the assigned beneficiary.
+    ///
+    /// @param _amount Claims _amount if unlocked amount is enough, claims all otherwise.
     function withdraw(uint256 _amount) external onlyBeneficiary nonReentrant {
         uint256 _amount_max = withdrawable();
         require(_amount_max > 0, "Locking: cannot withdraw yet");
@@ -131,6 +145,9 @@ contract Locking is ReentrancyGuard {
         emit TokenWithdrawn(msg.sender, _amount);
     }
 
+    /// @dev Gets the remain unlocked amount yet to be claimed.
+    ///
+    /// @return The remain unlocked amount.
     function withdrawable() public view returns (uint256) {
         if (block.timestamp <= startingTime) return 0;
         if (totalDeposit == 0) return 0;
