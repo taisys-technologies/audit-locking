@@ -1,154 +1,56 @@
-# Locking Contract Document
+# audit-locking
 
-- [setPendingGovernance](#setPendingGovernance)<span style="color:red">\*transaction</span>
-- [acceptGovernance](#acceptGovernance)<span style="color:red">\*transaction</span>
-- [startTimer](#startTimer)<span style="color:red">\*transaction</span>
-- [withdraw](#withdraw) <span style="color:red">\*transaction</span>
-- [withdrawable](#withdrawable)
+The purpose of this contract is to slowly release an amount of asset to a user after an assignated period of time.
 
-## `setPendingGovernance`
+The following are explanations for some user scenarios and the contract functions.
 
-Sets the new pending governance.
+## Contract Scenario Description
 
-### Format
+- Releasing process
 
-```javascript
-.setPendingGovernance(pendingGovernance)
-```
+By the time timer being started by the governance, the locking contract records its assignated ERC20 token balance. After the first *lockingPeriods* of periods after the timer starts, the locking contract begins to unlock. For the next *withdrawPeriods* of periods, the recorded fund is unlocked per period linearly in proportion to periods lapsed. The assignated user can at most claim the unlocked amount.
 
-### Input
+## Function Description
 
-> - pendingGovernance: `address`
 
-### Output
+- onlyGovernance
 
-> none
+Modifier that accepts only transactions from the assigned governance.
 
-### Event
+</br>
 
-> `PendingGovernanceUpdated(pendingGovernance: address)`
+- onlyBeneficiary
 
-<br />
+Modifier that accepts only transactions from the assigned beneficiary.
 
-[Back To Top](#locking-contract-document)
+</br>
 
----
+- setPendingGovernance **onlyGovernance**
 
-<br />
+Sets the pending governance. The governance changes after `acceptPendingGovernance` being called by the set pending governance.
 
-## `acceptGovernance`
+</br>
 
-Accepts to be the new governance.
+- acceptGovernance
 
-### Format
+This method can only be called by the pending governance set by the function, `setPendingGovernance`. The caller becomes the governance.
 
-```javascript
-.acceptGovernance()
-```
+</br>
 
-### Input
+- startTimer **onlyGovernance**
 
-> none
+Starts the timer; records the balance to be locked; assigns the beneficiary.
 
-### Output
+</br>
 
-> none
+- withdraw **onlyBeneficiary**
 
-### Event
+Withdraws an amount from the unlocked funds. Withdraws all if the unlocked amount were not enough.
 
-> `GovernanceUpdated(pendingGovernance: address)`
+</br>
 
-<br />
+- withdrawable
 
-[Back To Top](#locking-contract-document)
+Gets the remaining unlocked fund.
 
-___
-
-<br />
-
-## `startTimer`
-
-Sets the beneficiary of the locking contract and starts the timer for it.
-
-### Format
-
-```javascript=
-.startTimer(time, beneficiary)
-```
-
-### Input
-
-> - time: `uint256`
-> - beneficiary: `address`
-
-### Output
-
-> none
-
-### Event
-
-> `TimerStarted(time: uint256, beneficiary: address)`
-
-<br />
-
-[Back To Top](#locking-contract-document)
-
-___
-
-<br />
-
-## `withdraw`
-
-Withdraws tokens from the locking contract.
-
-### Format
-
-```javascript=
-.withdraw(amount)
-```
-
-### Input
-
-> - amount: `uint256`
-
-### Output
-
-> none
-
-### Event
-
-> `TokenWithdrawn(beneficiary: address, amount: uint256)`
-
-<br />
-
-[Back To Top](#locking-contract-document)
-
-___
-
-<br />
-
-## `withdrawable`
-
-Gets the maximum withdrawable amount of token by the time of calling.
-
-### Format
-
-```javascript=
-.withdrawable()
-```
-
-### Input
-
-> none
-
-### Output
-
-> - amount: `uint256`: the maximum `${amount}` of token the `msg.sender` can withdraw
-
-<br />
-
-[Back To Top](#locking-contract-document)
-
-___
-
-<br />
+</br>
