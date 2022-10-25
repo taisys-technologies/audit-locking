@@ -113,6 +113,7 @@ contract Locking is ReentrancyGuard {
     /// @param _time time in the future when the timer starts.
     /// @param _beneficiary the address that is allowed to claim the unlocked amount.
     function startTimer(uint256 _time, address _beneficiary) external onlyGovernance {
+        require(_beneficiary != address(0), "Locking: beneficiary cannot be 0x0");
         require(startingTime == 0, "Locking: timer already started");
         require(
             block.timestamp <= _time,
