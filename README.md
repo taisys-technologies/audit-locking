@@ -1,4 +1,4 @@
-# audit-locking
+# Audit Locking
 
 The purpose of this contract is to slowly release an amount of asset to a user after an assignated period of time.
 
@@ -8,10 +8,9 @@ The following are explanations for some user scenarios and the contract function
 
 - Releasing process
 
-By the time timer being started by the governance, the locking contract records its assignated ERC20 token balance. After the first *lockingPeriods* of periods after the timer starts, the locking contract begins to unlock. For the next *withdrawPeriods* of periods, the recorded fund is unlocked per period linearly in proportion to periods lapsed. The assignated user can at most claim the unlocked amount.
+By the time timer being started by the governance, the locking contract records its assignated ERC20 token balance. After the first _lockingPeriods_ of periods after the timer starts, the locking contract begins to unlock. For the next _withdrawPeriods_ of periods, the recorded fund is unlocked per period linearly in proportion to periods lapsed. The assignated user can at most claim the unlocked amount.
 
 ## Function Description
-
 
 - onlyGovernance
 
@@ -54,3 +53,37 @@ Withdraws an amount from the unlocked funds. Withdraws all if the unlocked amoun
 Gets the remaining unlocked fund.
 
 </br>
+
+## Document
+
+- [Notion](https://nonstop-krypton-90d.notion.site/Taisys-589a8731e1db4565beb2c31c0f53f479)
+- [Audit Report](./audit/)
+
+## Test
+
+### Setup
+
+```bash
+npm install
+```
+
+### Run
+
+```bash
+# run all tests
+npx hardhat test
+
+# run single test
+npx hardhat test ${TEST_FILE_PATH}
+
+# run tests with coverage report
+npx hardhat coverage
+```
+
+## Static Analysis
+
+[Slither Github](https://github.com/crytic/slither)
+
+```bash
+slither .
+```
